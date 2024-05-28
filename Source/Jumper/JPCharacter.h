@@ -28,11 +28,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	bool IsClimbingUp() const { return bIsClimbing && ClimbingDirectionUD > 0.0f; }
-	bool IsClimbingDown() const { return bIsClimbing && ClimbingDirectionUD < 0.0f; }
-	bool IsClimbingLeft() const { return bIsClimbing && ClimbingDirectionLR > 0.0f; }
-	bool IsClimbingRight() const { return bIsClimbing && ClimbingDirectionLR < 0.0f; }
-
 	UPROPERTY(VisibleAnywhere, Category = Camera)
 	USpringArmComponent* SpringArm;
 
@@ -43,14 +38,19 @@ public:
 	float RunSpeedMultiplier;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
-	float ClimbingSpeed = 100.0f;  // 벽 오르기 속도
-
-	float ClimbingDirectionUD;  // +1 for up, -1 for down
-	float ClimbingDirectionLR;  // +1 for left, -1 for right
+	float ClimbingSpeed;
 
 	bool bIsClimbing;
 	bool bIsOnCeiling;
 	bool bIsJump;
+
+	float ClimbingDirectionUD;
+	float ClimbingDirectionLR;
+
+	bool IsClimbingUp() const { return bIsClimbing && ClimbingDirectionUD > 0.0f; }
+	bool IsClimbingDown() const { return bIsClimbing && ClimbingDirectionUD < 0.0f; }
+	bool IsClimbingLeft() const { return bIsClimbing && ClimbingDirectionLR > 0.0f; }
+	bool IsClimbingRight() const { return bIsClimbing && ClimbingDirectionLR < 0.0f; }
 
 private:
 	void UpDown(float NewAxisValue);
@@ -64,6 +64,7 @@ private:
 	void StopRun();
 
 	void CheckWallAndCeilingPresence();
+
 	void ToggleClimbing();
 	void StartClimbing();
 	void StopClimbing();

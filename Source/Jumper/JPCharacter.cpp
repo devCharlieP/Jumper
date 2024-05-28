@@ -7,6 +7,8 @@
 AJPCharacter::AJPCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+
+	//캐릭터 스프링 암, 카메라 설정
 	PrimaryActorTick.bCanEverTick = true;
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SPRINGARM"));
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("CAMERA"));
@@ -18,12 +20,14 @@ AJPCharacter::AJPCharacter()
 	SpringArm->TargetArmLength = 400.0f;
 	SpringArm->SetRelativeRotation(FRotator(-15.0f, 0.0f, 0.0f));
 
+	//캐릭터 스켈레탈 메시 설정
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_MAN(TEXT("/Game/Man/Mesh/Full/SK_Man_Full_04.SK_Man_Full_04"));
 	if (SK_MAN.Succeeded())
 	{
 		GetMesh()->SetSkeletalMesh(SK_MAN.Object);
 	}
 
+	//캐릭터 애니메이션 설정
 	GetMesh()->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 
 	static ConstructorHelpers::FClassFinder<UAnimInstance> JUMPER_ANIM(TEXT("/Game/Save/Animations/JumperAnimBlueprint.JumperAnimBlueprint_C"));
@@ -32,13 +36,22 @@ AJPCharacter::AJPCharacter()
 		GetMesh()->SetAnimInstanceClass(JUMPER_ANIM.Class);
 	}
 
+	//캐릭터 컨트롤 모드 0 고정 설정
 	SetControlMode(0);
 
+	//캐릭터 점프 높이 설정
 	GetCharacterMovement()->JumpZVelocity = 600.0f;
+	
+	//캐릭터 걷기 속도 설정
 	GetCharacterMovement()->MaxWalkSpeed = 300.0f;
 
+	//달리기 배수 설정
 	RunSpeedMultiplier = 2.0f;
+
+	//벽을 올라가는 속도 설정
+	ClimbingSpeed = 100.0f;
 	
+	//bool값 변수들 초기화
 	bIsClimbing = false;
 	bIsOnCeiling = false;
 	bIsJump = false;
@@ -57,17 +70,20 @@ void AJPCharacter::Tick(float DeltaTime)
 
 	FTimerHandle TimerHandle;
 
+	//벽을 오르고 있을 시
 	if (bIsClimbing)
 	{
+		//벽과 천장 확인 함수 호출
 		CheckWallAndCeilingPresence();
 
+		//천장을 발견할 시
 		if (bIsOnCeiling)
 		{
 			bIsJump = true;
 
 			GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AJPCharacter::StopClimbing, 1.0f, false);
 
-			// 수직, 전방 이동 처리
+			// 수직 + 전방 이동 처리
 			float VerticalInput = 1.8f;
 
 			FVector ForwardMove = GetActorForwardVector() * VerticalInput * ClimbingSpeed * DeltaTime;
@@ -157,6 +173,7 @@ void AJPCharacter::StopRun()
 	GetCharacterMovement()->MaxWalkSpeed /= RunSpeedMultiplier;
 }
 
+//벽과 천장 확인 함수
 void AJPCharacter::CheckWallAndCeilingPresence()
 {
 	FVector StartHead = GetActorLocation() + FVector(0, 0, 80);  // 캐릭터 머리 높이에서 시작
@@ -168,7 +185,7 @@ void AJPCharacter::CheckWallAndCeilingPresence()
 	FHitResult HitDown;
 
 	FCollisionQueryParams Params;
-	Params.AddIgnoredActor(this);  // 자신은 무시
+	Params.AddIgnoredActor(this); // 자신은 무시
 	Params.bReturnPhysicalMaterial = true;
 
 	// 벽 감지
@@ -204,6 +221,7 @@ void AJPCharacter::CheckWallAndCeilingPresence()
 	}
 }
 
+//Climbing 상태 전환 함수
 void AJPCharacter::ToggleClimbing()
 {
 	if (!bIsClimbing)
@@ -247,6 +265,7 @@ void AJPCharacter::StopClimbing()
 	GetCharacterMovement()->SetMovementMode(MOVE_Walking); // 캐릭터 움직임을 복구
 }
 
+//캐릭터 컨트롤 모드 설정 함수
 void AJPCharacter::SetControlMode(int32 ControlMode)
 {
 	if (ControlMode == 0)
